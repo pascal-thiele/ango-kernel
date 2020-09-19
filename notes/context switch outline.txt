@@ -1,0 +1,8 @@
+context switch
+
+if thread identification of hardware thread element is not zero store current context
+try to pick the next thread to process
+on success load the context of the picked thread
+skip store and load of context if thread identification is the same
+
+on failure set a timer interrupt with the quantum of a normal priority process, disable virtual memory and return from the exception to the idle function

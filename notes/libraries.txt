@@ -1,0 +1,7 @@
+heap
+stack
+message passing (inter process communication)
+address range passing (inter process communication)
+threads
+processes
+timer

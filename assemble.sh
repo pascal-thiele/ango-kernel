@@ -1,0 +1,1 @@
+ango-riscv64-assembler "code/kernel.s" "code/hardware thread.s" "code/flattened device tree 17.s" "code/exception handler.s" "code/memory.s" "code/virtual timer comparator.s" "code/device interface.s" "code/user.s" "code/process.s" "code/thread.s"

@@ -1,0 +1,16 @@
+# Spaces are interpreted as data separators, meaning they are followed by a new object of data.
+# Parantheses can be wrapped around character arrays to indicate contained spaces are part of the character array itself.
+# Labels indicate the type of information that follows. They are identified by the succeeding colon and can contain any character except spaces.
+
+# example
+
+superusers:
+herro
+
+users:
+"pascal thiele" "password123"
+"you stink" "ass is sick"
+
+programs:
+"/programs/microsoft/edge/12.3.0.0"
+"/programs/"

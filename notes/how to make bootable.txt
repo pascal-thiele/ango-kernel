@@ -1,0 +1,3 @@
+partition the target media with a guid partition table
+write the kernel binary to a partition with the guid "2E54B353-1271-4842-806F-E436D6AF69851"
+the entire partition is loaded into main memory, so make sure the binary is located in the lowermost address of the partition

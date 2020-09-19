@@ -1,0 +1,16 @@
+The device interface table is excluded from following calculations, since it depends on the content of the systems device tree.
+
+206 040, hardware thread table
+32 768, user table
+74 752, process table
+12 288, memory table
+446 464, thread table
+20 480, scheduler table
+
+The total initial memory usage, excluding device interface table and program code:
+792 792 bytes
+
+Concluding, the minimum amount of kernel memory is four mebibytes.
+hexadecimal, 40 0000
+decimal, 4 194 304
+binary, 100 0000 0000 0000 0000 0000

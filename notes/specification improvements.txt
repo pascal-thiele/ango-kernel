@@ -1,0 +1,2 @@
+# inter process communication rework
+mention the correlation of message register content size with the register width of the base instruction set.
