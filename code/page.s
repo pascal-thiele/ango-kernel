@@ -26,7 +26,6 @@ sd s2 sp 24
 sd s3 sp 32
 sd s4 sp 40
 
-# to do rework to count page tables to allocate???
 # seek sufficient empty page range
 lui t0 0 # byte count
 lui t1 0 # third level index
@@ -110,14 +109,15 @@ addi a0 zero 1
 jal zero page_table_allocate_return
 
 .label page_table_allocate_calculate_space
+# round up size to a multiple of four kibibytes
 lui t0 1
 addi t1 t0 -1
 and t2 a1 t1
 sub t0 t0 t2
 and t0 t0 t1
 add t0 t0 a1
-# add page tables
-# assumes no existing first and second level page tables are used
+addi s1 t0 0 # rounded size
+# add the amount of page tables needed to contain all pages
 srli t0 t0 12
 srli t1 t0 9
 add t0 t0 t1
@@ -210,9 +210,9 @@ jalr zero ra 0
 # a0 address range address
 # a1 address range size
 .label page_insert
-# shrink address range to page boundaries
 lui t0 1
 bltu a1 t0 page_insert_return
+# shrink address range to page boundaries
 remu t1 a0 t0
 sub t1 t0 t1
 add a0 a0 t1

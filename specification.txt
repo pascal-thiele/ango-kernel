@@ -62,35 +62,27 @@ Initialization starts in machine mode, as the kernel always runs in machine mode
 
 # entry expectations
 
-The address of a flattened device tree of version 17 is expected to be given in a0 and machine mode interrupts shall be disabled, to ensure defined behaviour while the kernels exception handler is not initialized yet. Any other register may be undefined and is set by the kernel itself.
+The address of a flattened device tree of version 17 is expected to be given in a1 and machine mode interrupts shall be disabled, to ensure defined behaviour while the kernels exception handler is not initialized yet. Any other register may be undefined and is set by the kernel itself.
 
 
 
 # 3 memory management
 
-While the kernel itself addresses physical memory, all processes utilize page based virtual memory with 4096 byte pages and 39 bit virtual addresses (RISC-V Sv39). Except page tables, all kernel structures are allocated at kernel assembly and do not change in size, to ensure full isolation from user memory allocations and predictable memory layout. Any remaining memory is aligned to page boundaries and made available to user programs.
+While the kernel itself addresses physical memory, all processes utilize page based virtual memory with 4096 byte pages and 39 bit virtual addresses (RISC-V Sv39). Except page tables, all kernel structures are allocated at kernel assembly and do not change in size, to prevent user memory allocations from limiting kernel memory. Any remaining memory is aligned to page boundaries and made available to user programs. Other sizes than 4096 byte pages, such as 2097152 byte megapages, would impose additional overhead on all allocations and free operations and are not implemented.
 
 
 # user memory
 
-All free pages are concatenated to a linked list, where each page contains the address of the succeeding page. The linked list is not sorted and pages are always pushed and popped from the top. At allocation the kernel determines the physical and virtual address of the page, while user programs shall comply with the location of given pages. Moreover, user programs shall be position independent and only assume to be loaded to an address that is aligned to 64 bits.
+All free pages are concatenated to a linked list, where each page contains the address of the succeeding page. The linked list is not sorted and pages are always pushed and popped from the top. At allocation the kernel determines the physical and virtual address of the page, while the user program shall comply with the returned virtual address. Moreover, user programs shall be position independent and assume to be loaded to an address that is a multiple of eight.
 
-The address space of processes is divided into user space and device interface space. The device interface space is always located at the uppermost addresses and allows the kernel to map all device interfaces to the address space of any process. The size of the device interface space is the sum of all device interface memory sizes. The remaining addresses make up user space and may contain any data that is specific to the contained user program.
-
-Pages are always mapped to user address spaces with full permissions, because the security of a user program shall not be a concern of the kernel and avoids polluting program binaries with operating system specific data. Also, gigapages, superpages, or megapages are not supported, because they do not add functionallity for the user and cause general overhead in most memory routines.
-
-
-# address spaces
-
-Each process has its own address space, which maps virtual addresses to physical addresses. An address space gives the contained user program the impression as if it is the only program in main memory and isolates memory operations of a process from another. The amount of bits used to identify each address space may vary depending on the implementation. Therefore, the address space identifier is calculated with the formula:
-
-(maximum address space identifier % process identifier) + 1 = address space identifier
+Pages are always mapped to user address spaces with full permissions, because the security of a user program shall not be a concern of the kernel and avoids polluting program binaries with operating system specific data.
 
 
 # translation lookaside buffer invalidation
 
-The translation lookaside buffer contains the most common physical to virtual address mappings, ultimately reducing virtual address translation times. However, this causes page table leaf entries to possibly exist multiple times, so that changes to a page table entry may only be present in main memory, but not in translation lookaside buffers. Therefore, on modification of a page table entry, the kernel invalidates all entries of the given address space in the translation lookaside buffer of each hardware thread.
+The translation lookaside buffer contains the most common physical to virtual address mappings, ultimately reducing virtual address translation times. However, this causes page table entries to possibly exist multiple times, so that changes to a page table entry may only be present in main memory, but not in translation lookaside buffers. Therefore, on modification of a page table, the kernel invalidates all entries in the translation lookaside buffer of each hardware thread.
 
+#### to do rework; do not use address space identifiers
 Invalidation of translation lookaside buffer entries are issued in order, meaning, only a single hardware thread can issue an invalidation at a time. This is completely acceptable, since the procedure of invalidation itself synchronizes all hardware threads anyway. For synchronization the kernel maintains 16 bits to identify the process who's address space has to be invalidated and 8 bits to keep track of the amount of hardware threads that still need to invalidate their corresponding page table entries.
 
 The invalidation routine starts at the hardware thread that altered or removed a page table entry. The hardware thread writes the identification of the process the page table entry is part of, to the translation lookaside buffer invalidation fence. Moreover, it resets the fences hardware thread count to the size of the hardware thread table. Now it causes a software interrupt for all other hardware threads and invalidates its own translation lookaside buffer entries.
